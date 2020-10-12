@@ -157,10 +157,14 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 
 			cadvisorPodsResponse := new(podResponse)
 			//podsResult :=
-			json.NewDecoder(resp.Body).Decode(cadvisorPodsResponse)
+			err = json.NewDecoder(resp.Body).Decode(&cadvisorPodsResponse)
+			if err != nil {
+				return err
+			}
 			// json.Unmarshal(body, &cadvisorPodsResponse)
 
 			//log.Printf(string(body))
+			//log.Printf("cadvisorPodsResponse: %s", string(cadvisorPodsResponse))
 			pods := cadvisorPodsResponse.items
 			log.Printf("pods length: %d", len(pods))
 			for _, pod := range pods {
