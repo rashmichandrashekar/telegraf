@@ -26,6 +26,18 @@ type payload struct {
 	pod      *corev1.Pod
 }
 
+type podMetadata strict {
+	resourceVersion string
+	selfLink string
+}
+
+type podResponse struct {
+	kind string
+	apiVersion string
+	metadata podMetadata
+	items []*corev1.Pod
+}
+
 // loadClient parses a kubeconfig from a file and returns a Kubernetes
 // client. It does not support extensions or client auth providers.
 func loadClient(kubeconfigPath string) (*k8s.Client, error) {
@@ -141,7 +153,24 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 			if err != nil {
 				return err
 			}
-			log.Printf(string(body))
+
+			var cadvisorPodsResponse = new(podResponse)
+			podsResult, err := json.Unmarshal(body, &cadvisorPodsResponse)
+			if(err != nil){
+				return err
+			}
+
+			//log.Printf(string(body))
+			pods := podsResult.items
+
+			for _,pod := range pods {
+				log.Printf("Rashmi-log: in pods for loop")
+				if pod.GetMetadata().GetAnnotations()["prometheus.io/scrape"] != "true" ||
+				!podReady(pod.Status.GetContainerStatuses()) {
+				continue
+			}
+			log.Printf("Rashmi-log: good pod found!! - %s", pod.GetMetadata().GetName())
+			}
 
 			pod = &corev1.Pod{}
 			// An error here means we need to reconnect the watcher.
@@ -149,6 +178,8 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 			if err != nil {
 				return err
 			}
+
+
 
 			// If the pod is not "ready", there will be no ip associated with it.
 			if pod.GetMetadata().GetAnnotations()["prometheus.io/scrape"] != "true" ||
