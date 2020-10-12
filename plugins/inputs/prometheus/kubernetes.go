@@ -161,7 +161,7 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 
 			//log.Printf(string(body))
 			pods := cadvisorPodsResponse.items
-
+			log.Printf("pods length: %d", len(pods))
 			for _, pod := range pods {
 				log.Printf("Rashmi-log: in pods for loop")
 				if pod.GetMetadata().GetAnnotations()["prometheus.io/scrape"] != "true" ||
@@ -171,31 +171,31 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 				log.Printf("Rashmi-log: good pod found!! - %s", pod.GetMetadata().GetName())
 			}
 
-			pod = &corev1.Pod{}
-			// An error here means we need to reconnect the watcher.
-			eventType, err := watcher.Next(pod)
-			if err != nil {
-				return err
-			}
+			// pod = &corev1.Pod{}
+			// // An error here means we need to reconnect the watcher.
+			// eventType, err := watcher.Next(pod)
+			// if err != nil {
+			// 	return err
+			// }
 
 			// If the pod is not "ready", there will be no ip associated with it.
-			if pod.GetMetadata().GetAnnotations()["prometheus.io/scrape"] != "true" ||
-				!podReady(pod.Status.GetContainerStatuses()) {
-				continue
-			}
+			// if pod.GetMetadata().GetAnnotations()["prometheus.io/scrape"] != "true" ||
+			// 	!podReady(pod.Status.GetContainerStatuses()) {
+			// 	continue
+			// }
 
-			switch eventType {
-			case k8s.EventAdded:
-				registerPod(pod, p)
-			case k8s.EventModified:
-				// To avoid multiple actions for each event, unregister on the first event
-				// in the delete sequence, when the containers are still "ready".
-				if pod.Metadata.GetDeletionTimestamp() != nil {
-					unregisterPod(pod, p)
-				} else {
-					registerPod(pod, p)
-				}
-			}
+			// switch eventType {
+			// case k8s.EventAdded:
+			// 	registerPod(pod, p)
+			// case k8s.EventModified:
+			// 	// To avoid multiple actions for each event, unregister on the first event
+			// 	// in the delete sequence, when the containers are still "ready".
+			// 	if pod.Metadata.GetDeletionTimestamp() != nil {
+			// 		unregisterPod(pod, p)
+			// 	} else {
+			// 		registerPod(pod, p)
+			// 	}
+			// }
 		}
 	}
 }
