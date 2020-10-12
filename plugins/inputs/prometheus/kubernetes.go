@@ -2,10 +2,13 @@ package prometheus
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net"
+	"net/http"
 	"net/url"
 	"os/user"
 	"path/filepath"
@@ -98,8 +101,44 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		default:
-			log.Printf("Rashmi-log: in default case of p.watch")
+		//default:
+		case <-time.After(30 * time.Second):
+			log.Printf("Rashmi-log: after 30s attempting to update url list")
+			caCert, err := ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
+			if err != nil {
+				return err
+			}
+
+			caCertPool := x509.NewCertPool()
+			caCertPool.AppendCertsFromPEM(caCert)
+
+			client := &http.Client{
+				Transport: &http.Transport{
+					TLSClientConfig: &tls.Config{
+						RootCAs: caCertPool,
+					},
+				},
+				Timeout: 30 * time.Second,
+			}
+
+			bearerToken, err := ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/token")
+			if err != nil {
+				return err
+			}
+			req, err := http.NewRequest("GET", "https://$NODE_IP:10255/pods", nil)
+			req.Header.Set("Authorization", string(bearerToken))
+			resp, err := client.Do(req)
+			if err != nil {
+				return err
+			}
+			defer resp.Body.Close()
+
+			body, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return err
+			}
+			log.Printf(string(body))
+
 			pod = &corev1.Pod{}
 			// An error here means we need to reconnect the watcher.
 			eventType, err := watcher.Next(pod)
