@@ -130,7 +130,7 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 			nodeIP := os.Getenv("NODE_IP")
 			podsUrl := fmt.Sprintf("https://%s:10255/pods", nodeIP)
 			req, err := http.NewRequest("GET", podsUrl, nil)
-			req.Header.Set("Authorization", string(bearerToken))
+			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", string(bearerToken)))
 			resp, err := client.Do(req)
 			if err != nil {
 				return err
