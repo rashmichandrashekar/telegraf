@@ -166,8 +166,8 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 			for _,pod := range pods {
 				log.Printf("Rashmi-log: in pods for loop")
 				if pod.GetMetadata().GetAnnotations()["prometheus.io/scrape"] != "true" ||
-				!podReady(pod.Status.GetContainerStatuses()) {
-				continue
+				   !podReady(pod.Status.GetContainerStatuses()) {
+						continue
 			}
 			log.Printf("Rashmi-log: good pod found!! - %s", pod.GetMetadata().GetName())
 			}
