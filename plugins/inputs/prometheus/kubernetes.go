@@ -150,14 +150,15 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 			}
 			defer resp.Body.Close()
 
-			body, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				return err
-			}
+			//body, err := ioutil.ReadAll(resp.Body)
+			//if err != nil {
+			//	return err
+			//}
 
-			var cadvisorPodsResponse = new(podResponse)
+			cadvisorPodsResponse := new(podResponse)
 			//podsResult :=
-			json.Unmarshal(body, &cadvisorPodsResponse)
+			json.NewDecoder(resp.Body).Decode(cadvisorPodsResponse)
+			// json.Unmarshal(body, &cadvisorPodsResponse)
 
 			//log.Printf(string(body))
 			pods := cadvisorPodsResponse.items
