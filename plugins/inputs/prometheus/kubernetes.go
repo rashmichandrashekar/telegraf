@@ -116,7 +116,8 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 			client := &http.Client{
 				Transport: &http.Transport{
 					TLSClientConfig: &tls.Config{
-						RootCAs: caCertPool,
+						RootCAs:            caCertPool,
+						InsecureSkipVerify: true,
 					},
 				},
 				Timeout: 30 * time.Second,
