@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"os/user"
 	"path/filepath"
 	"sync"
@@ -125,7 +126,9 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 			if err != nil {
 				return err
 			}
-			req, err := http.NewRequest("GET", "https://$NODE_IP:10255/pods", nil)
+			nodeIP := os.Getenv("NODE_IP")
+			podsUrl := fmt.Sprintf("https://%s:10255/pods", nodeIP)
+			req, err := http.NewRequest("GET", podsUrl, nil)
 			req.Header.Set("Authorization", string(bearerToken))
 			resp, err := client.Do(req)
 			if err != nil {
