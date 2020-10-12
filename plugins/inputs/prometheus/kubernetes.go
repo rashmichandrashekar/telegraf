@@ -39,6 +39,7 @@ func loadClient(kubeconfigPath string) (*k8s.Client, error) {
 }
 
 func (p *Prometheus) start(ctx context.Context) error {
+	log.Printf("Rashmi-log: in prometheus start")
 	client, err := k8s.NewInClusterClient()
 	if err != nil {
 		u, err := user.Current()
@@ -66,6 +67,7 @@ func (p *Prometheus) start(ctx context.Context) error {
 			case <-ctx.Done():
 				return
 			case <-time.After(time.Second):
+				log.Printf("Rashmi-log: before p.watch")
 				err := p.watch(ctx, client)
 				if err != nil {
 					p.Log.Errorf("Unable to watch resources: %s", err.Error())
@@ -82,7 +84,7 @@ func (p *Prometheus) start(ctx context.Context) error {
 // pod, causing errors in the logs. This is only true if the pod going offline is not
 // directed to do so by K8s.
 func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
-
+	log.Printf("Rashmi-log: in p.watch")
 	selectors := podSelector(p)
 
 	pod := &corev1.Pod{}
@@ -97,6 +99,7 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 		case <-ctx.Done():
 			return nil
 		default:
+			log.Printf("Rashmi-log: in default case of p.watch")
 			pod = &corev1.Pod{}
 			// An error here means we need to reconnect the watcher.
 			eventType, err := watcher.Next(pod)
