@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -26,16 +27,16 @@ type payload struct {
 	pod      *corev1.Pod
 }
 
-type podMetadata strict {
+type podMetadata struct {
 	resourceVersion string
-	selfLink string
+	selfLink        string
 }
 
 type podResponse struct {
-	kind string
+	kind       string
 	apiVersion string
-	metadata podMetadata
-	items []*corev1.Pod
+	metadata   podMetadata
+	items      []*corev1.Pod
 }
 
 // loadClient parses a kubeconfig from a file and returns a Kubernetes
@@ -155,21 +156,19 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 			}
 
 			var cadvisorPodsResponse = new(podResponse)
-			podsResult, err := json.Unmarshal(body, &cadvisorPodsResponse)
-			if(err != nil){
-				return err
-			}
+			//podsResult :=
+			json.Unmarshal(body, &cadvisorPodsResponse)
 
 			//log.Printf(string(body))
-			pods := podsResult.items
+			pods := cadvisorPodsResponse.items
 
-			for _,pod := range pods {
+			for _, pod := range pods {
 				log.Printf("Rashmi-log: in pods for loop")
 				if pod.GetMetadata().GetAnnotations()["prometheus.io/scrape"] != "true" ||
-				   !podReady(pod.Status.GetContainerStatuses()) {
-						continue
-			}
-			log.Printf("Rashmi-log: good pod found!! - %s", pod.GetMetadata().GetName())
+					!podReady(pod.Status.GetContainerStatuses()) {
+					continue
+				}
+				log.Printf("Rashmi-log: good pod found!! - %s", pod.GetMetadata().GetName())
 			}
 
 			pod = &corev1.Pod{}
@@ -178,8 +177,6 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 			if err != nil {
 				return err
 			}
-
-
 
 			// If the pod is not "ready", there will be no ip associated with it.
 			if pod.GetMetadata().GetAnnotations()["prometheus.io/scrape"] != "true" ||
