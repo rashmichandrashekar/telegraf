@@ -104,7 +104,7 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 	log.Printf("Rashmi-log: in p.watch")
 	selectors := podSelector(p)
 
-	pod := &corev1.Pod{}
+	// pod := &corev1.Pod{}
 	watcher, err := client.Watch(ctx, p.PodNamespace, &corev1.Pod{}, selectors...)
 	if err != nil {
 		return err
