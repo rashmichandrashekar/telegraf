@@ -33,10 +33,10 @@ type podMetadata struct {
 }
 
 type podResponse struct {
-	kind       string
-	apiVersion string
-	metadata   podMetadata
-	items      []*corev1.Pod
+	kind       string        `json:"kind"`
+	apiVersion string        `json:"apiVersion"`
+	metadata   podMetadata   `json:"metadata"`
+	items      []*corev1.Pod `json:"items"`
 }
 
 // loadClient parses a kubeconfig from a file and returns a Kubernetes
