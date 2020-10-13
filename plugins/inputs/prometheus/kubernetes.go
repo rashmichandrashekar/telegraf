@@ -150,12 +150,12 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 			}
 			defer resp.Body.Close()
 
-			//body, err := ioutil.ReadAll(resp.Body)
-			//if err != nil {
-			//	return err
-			//}
+			// body, err := ioutil.ReadAll(resp.Body)
+			// if err != nil {
+			// 	return err
+			// }
 
-			cadvisorPodsResponse := new(podResponse)
+			cadvisorPodsResponse := podResponse{}
 			//podsResult :=
 			err = json.NewDecoder(resp.Body).Decode(&cadvisorPodsResponse)
 			if err != nil {
@@ -166,6 +166,7 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 			//log.Printf(string(body))
 			//log.Printf("cadvisorPodsResponse: %s", string(cadvisorPodsResponse))
 			pods := cadvisorPodsResponse.items
+			log.Printf("pods kind: %s", cadvisorPodsResponse.kind)
 			log.Printf("pods length: %d", len(pods))
 			for _, pod := range pods {
 				log.Printf("Rashmi-log: in pods for loop")
