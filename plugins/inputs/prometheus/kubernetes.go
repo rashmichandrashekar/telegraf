@@ -28,15 +28,15 @@ type payload struct {
 }
 
 type podMetadata struct {
-	resourceVersion string `json:"resourceVersion"`
-	selfLink        string `json:"selfLink"`
+	resourceVersion string
+	selfLink        string
 }
 
 type podResponse struct {
-	kind       string        `json:"kind"`
-	apiVersion string        `json:"apiVersion"`
-	metadata   podMetadata   `json:"metadata"`
-	items      []*corev1.Pod `json:"items"`
+	kind       string
+	apiVersion string
+	metadata   podMetadata
+	items      []*corev1.Pod
 }
 
 // loadClient parses a kubeconfig from a file and returns a Kubernetes
@@ -150,14 +150,17 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 			}
 			defer resp.Body.Close()
 
-			// body, err := ioutil.ReadAll(resp.Body)
-			// if err != nil {
-			// 	return err
-			// }
+			body, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return err
+			}
 
-			cadvisorPodsResponse := podResponse{}
+			responseBody := string(body)
+			var cadvisorPodsResponse map[string]interface{}
+			json.Unmarshal([]byte(responseBody), &cadvisorPodsResponse)
+			//cadvisorPodsResponse := podResponse{}
 			//podsResult :=
-			err = json.NewDecoder(resp.Body).Decode(&cadvisorPodsResponse)
+			//err = json.NewDecoder(resp.Body).Decode(&cadvisorPodsResponse)
 			if err != nil {
 				return err
 			}
@@ -165,8 +168,8 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 
 			//log.Printf(string(body))
 			//log.Printf("cadvisorPodsResponse: %s", string(cadvisorPodsResponse))
-			pods := cadvisorPodsResponse.items
-			log.Printf("pods kind: %s", cadvisorPodsResponse.kind)
+			pods := cadvisorPodsResponse["items"]
+			log.Printf("pods kind: %s", cadvisorPodsResponse["kind"])
 			log.Printf("pods length: %d", len(pods))
 			for _, pod := range pods {
 				log.Printf("Rashmi-log: in pods for loop")
