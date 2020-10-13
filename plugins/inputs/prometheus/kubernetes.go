@@ -159,40 +159,20 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 			json.Unmarshal([]byte(responseBody), &cadvisorPodsResponse)
 
 			pods := cadvisorPodsResponse.Items
+			p.lock.Lock()
+			// Resetting this so that it can be updated
+			p.kubernetesPods = map[string]URLAndAddress{}
 			for _, pod := range pods {
-				//log.Printf("%s", pod.GetMetadata().GetName())
-				if pod.GetMetadata().GetAnnotations()["prometheus.io/scrape"] != "true" ||
-					!podReady(pod.Status.GetContainerStatuses()) {
-					continue
+				if pod.GetMetadata().GetAnnotations()["agentVersion"] == "1.10.0.1" {
+					if pod.GetMetadata().GetAnnotations()["prometheus.io/scrape"] != "true" ||
+						!podReady(pod.Status.GetContainerStatuses()) {
+						continue
+					}
+					log.Printf("Rashmi-log: good pod found, registering!! - %s", pod.GetMetadata().GetName())
+					registerPod(pod, p)
 				}
-				log.Printf("Rashmi-log: good pod found!! - %s", pod.GetMetadata().GetName())
 			}
-
-			// pod = &corev1.Pod{}
-			// // An error here means we need to reconnect the watcher.
-			// eventType, err := watcher.Next(pod)
-			// if err != nil {
-			// 	return err
-			// }
-
-			// If the pod is not "ready", there will be no ip associated with it.
-			// if pod.GetMetadata().GetAnnotations()["prometheus.io/scrape"] != "true" ||
-			// 	!podReady(pod.Status.GetContainerStatuses()) {
-			// 	continue
-			// }
-
-			// switch eventType {
-			// case k8s.EventAdded:
-			// 	registerPod(pod, p)
-			// case k8s.EventModified:
-			// 	// To avoid multiple actions for each event, unregister on the first event
-			// 	// in the delete sequence, when the containers are still "ready".
-			// 	if pod.Metadata.GetDeletionTimestamp() != nil {
-			// 		unregisterPod(pod, p)
-			// 	} else {
-			// 		registerPod(pod, p)
-			// 	}
-			// }
+			p.lock.Unlock()
 		}
 	}
 }
@@ -225,9 +205,6 @@ func podSelector(p *Prometheus) []k8s.Option {
 }
 
 func registerPod(pod *corev1.Pod, p *Prometheus) {
-	if p.kubernetesPods == nil {
-		p.kubernetesPods = map[string]URLAndAddress{}
-	}
 	targetURL := getScrapeURL(pod)
 	if targetURL == nil {
 		return
@@ -251,14 +228,14 @@ func registerPod(pod *corev1.Pod, p *Prometheus) {
 		return
 	}
 	podURL := p.AddressToURL(URL, URL.Hostname())
-	p.lock.Lock()
+	// p.lock.Lock()
 	p.kubernetesPods[podURL.String()] = URLAndAddress{
 		URL:         podURL,
 		Address:     URL.Hostname(),
 		OriginalURL: URL,
 		Tags:        tags,
 	}
-	p.lock.Unlock()
+	// p.lock.Unlock()
 }
 
 func getScrapeURL(pod *corev1.Pod) *string {
