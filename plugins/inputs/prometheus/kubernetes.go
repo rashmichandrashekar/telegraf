@@ -158,10 +158,11 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 			//responseBody := string(body)
 			cadvisorPodsResponse := podResponse{}
 			//var cadvisorPodsResponse map[string]interface{}
-			err = json.Unmarshal([]byte(responseBody), &cadvisorPodsResponse)
-			if err != nil {
-				return err
-			}
+			//err =
+			json.Unmarshal([]byte(responseBody), &cadvisorPodsResponse)
+			// if err != nil {
+			// 	return err
+			// }
 
 			// log.Printf("pods kind: %s", cadvisorPodsResponse)
 
