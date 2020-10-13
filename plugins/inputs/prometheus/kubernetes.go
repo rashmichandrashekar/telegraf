@@ -28,8 +28,8 @@ type payload struct {
 }
 
 type podMetadata struct {
-	resourceVersion string
-	selfLink        string
+	resourceVersion string `json:"resourceVersion"`
+	selfLink        string `json:"selfLink"`
 }
 
 type podResponse struct {
