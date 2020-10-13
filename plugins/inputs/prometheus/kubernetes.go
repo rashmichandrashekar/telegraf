@@ -155,35 +155,18 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 				return err
 			}
 
-			//responseBody := string(body)
 			cadvisorPodsResponse := podResponse{}
-			//var cadvisorPodsResponse map[string]interface{}
-			//err =
 			json.Unmarshal([]byte(responseBody), &cadvisorPodsResponse)
-			// if err != nil {
-			// 	return err
-			// }
-
-			// log.Printf("pods kind: %s", cadvisorPodsResponse)
 
 			pods := cadvisorPodsResponse.Items
 			for _, pod := range pods {
-				log.Printf("%s", pod.GetMetadata().GetName())
+				//log.Printf("%s", pod.GetMetadata().GetName())
+				if pod.GetMetadata().GetAnnotations()["prometheus.io/scrape"] != "true" ||
+					!podReady(pod.Status.GetContainerStatuses()) {
+					continue
+				}
+				log.Printf("Rashmi-log: good pod found!! - %s", pod.GetMetadata().GetName())
 			}
-			// if reflect.TypeOf(podsArray).Kind() == reflect.Slice {
-			// 	pods := reflect.ValueOf(podsArray)
-			// 	log.Printf("pods length: %d", pods.Len())
-			// 	//for _, pod := range pods {
-			// 	for i := 0; i < pods.Len(); i++ {
-			// 		log.Printf("Rashmi-log: in pods for loop")
-			// 		log.Printf("Rashmi-log: pod - %s", pods.Index(i)["metadata"]["name"])
-			// 		// if pod.GetMetadata().GetAnnotations()["prometheus.io/scrape"] != "true" ||
-			// 		// 	!podReady(pod.Status.GetContainerStatuses()) {
-			// 		// 	continue
-			// 		// }
-			// 		// log.Printf("Rashmi-log: good pod found!! - %s", pod.GetMetadata().GetName())
-			// 	}
-			// }
 
 			// pod = &corev1.Pod{}
 			// // An error here means we need to reconnect the watcher.
