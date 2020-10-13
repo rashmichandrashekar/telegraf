@@ -28,15 +28,15 @@ type payload struct {
 }
 
 type podMetadata struct {
-	resourceVersion string `json:"resourceVersion"`
-	selfLink        string `json:"selfLink"`
+	ResourceVersion string `json:"resourceVersion"`
+	SelfLink        string `json:"selfLink"`
 }
 
 type podResponse struct {
-	kind       string        `json:"kind"`
-	apiVersion string        `json:"apiVersion"`
-	metadata   podMetadata   `json:"metadata"`
-	items      []*corev1.Pod `json:"items"`
+	Kind       string        `json:"kind"`
+	ApiVersion string        `json:"apiVersion"`
+	Metadata   podMetadata   `json:"metadata"`
+	Items      []*corev1.Pod `json:"items"`
 }
 
 // loadClient parses a kubeconfig from a file and returns a Kubernetes
@@ -167,7 +167,7 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 			// json.Unmarshal(body, &cadvisorPodsResponse)
 
 			//podsArray := cadvisorPodsResponse["items"]
-			log.Printf("pods kind: %s", cadvisorPodsResponse.kind)
+			log.Printf("pods kind: %s", cadvisorPodsResponse.Kind)
 			// if reflect.TypeOf(podsArray).Kind() == reflect.Slice {
 			// 	pods := reflect.ValueOf(podsArray)
 			// 	log.Printf("pods length: %d", pods.Len())
