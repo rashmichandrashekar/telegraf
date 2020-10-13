@@ -28,15 +28,15 @@ type payload struct {
 }
 
 type podMetadata struct {
-	resourceVersion string
-	selfLink        string
+	resourceVersion string `json:"resourceVersion"`
+	selfLink        string `json:"selfLink"`
 }
 
 type podResponse struct {
-	kind       string
-	apiVersion string
-	metadata   podMetadata
-	items      []*corev1.Pod
+	kind       string        `json:"kind"`
+	apiVersion string        `json:"apiVersion"`
+	metadata   podMetadata   `json:"metadata"`
+	items      []*corev1.Pod `json:"items"`
 }
 
 // loadClient parses a kubeconfig from a file and returns a Kubernetes
@@ -156,9 +156,9 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 			}
 
 			responseBody := string(body)
-			var cadvisorPodsResponse map[string]interface{}
-			json.Unmarshal([]byte(responseBody), &cadvisorPodsResponse)
-			//cadvisorPodsResponse := podResponse{}
+			//var cadvisorPodsResponse map[string]interface{}
+			cadvisorPodsResponse := podResponse{}
+			err = json.Unmarshal([]byte(responseBody), &cadvisorPodsResponse)
 			//podsResult :=
 			//err = json.NewDecoder(resp.Body).Decode(&cadvisorPodsResponse)
 			if err != nil {
@@ -166,19 +166,22 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 			}
 			// json.Unmarshal(body, &cadvisorPodsResponse)
 
-			//log.Printf(string(body))
-			//log.Printf("cadvisorPodsResponse: %s", string(cadvisorPodsResponse))
-			pods := cadvisorPodsResponse["items"]
-			log.Printf("pods kind: %s", cadvisorPodsResponse["kind"])
-			log.Printf("pods length: %d", len(pods))
-			for _, pod := range pods {
-				log.Printf("Rashmi-log: in pods for loop")
-				if pod.GetMetadata().GetAnnotations()["prometheus.io/scrape"] != "true" ||
-					!podReady(pod.Status.GetContainerStatuses()) {
-					continue
-				}
-				log.Printf("Rashmi-log: good pod found!! - %s", pod.GetMetadata().GetName())
-			}
+			//podsArray := cadvisorPodsResponse["items"]
+			log.Printf("pods kind: %s", cadvisorPodsResponse.kind)
+			// if reflect.TypeOf(podsArray).Kind() == reflect.Slice {
+			// 	pods := reflect.ValueOf(podsArray)
+			// 	log.Printf("pods length: %d", pods.Len())
+			// 	//for _, pod := range pods {
+			// 	for i := 0; i < pods.Len(); i++ {
+			// 		log.Printf("Rashmi-log: in pods for loop")
+			// 		log.Printf("Rashmi-log: pod - %s", pods.Index(i)["metadata"]["name"])
+			// 		// if pod.GetMetadata().GetAnnotations()["prometheus.io/scrape"] != "true" ||
+			// 		// 	!podReady(pod.Status.GetContainerStatuses()) {
+			// 		// 	continue
+			// 		// }
+			// 		// log.Printf("Rashmi-log: good pod found!! - %s", pod.GetMetadata().GetName())
+			// 	}
+			// }
 
 			// pod = &corev1.Pod{}
 			// // An error here means we need to reconnect the watcher.
