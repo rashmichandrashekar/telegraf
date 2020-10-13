@@ -150,22 +150,25 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 			}
 			defer resp.Body.Close()
 
-			// body, err := ioutil.ReadAll(resp.Body)
-			// if err != nil {
-			// 	return err
-			// }
-
-			//responseBody := string(body)
-			cadvisorPodsResponse := podResponse{}
-			// err = json.Unmarshal([]byte(responseBody), &cadvisorPodsResponse)
-			err = json.NewDecoder(resp.Body).Decode(&cadvisorPodsResponse)
+			responseBody, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
 				return err
 			}
-			// json.Unmarshal(body, &cadvisorPodsResponse)
 
-			//podsArray := cadvisorPodsResponse["items"]
-			log.Printf("pods kind: %s", cadvisorPodsResponse.Kind)
+			//responseBody := string(body)
+			cadvisorPodsResponse := podResponse{}
+			//var cadvisorPodsResponse map[string]interface{}
+			err = json.Unmarshal([]byte(responseBody), &cadvisorPodsResponse)
+			if err != nil {
+				return err
+			}
+
+			// log.Printf("pods kind: %s", cadvisorPodsResponse)
+
+			pods := cadvisorPodsResponse.Items
+			for _, pod := range pods {
+				log.Printf("%s", pod.GetMetadata().GetName())
+			}
 			// if reflect.TypeOf(podsArray).Kind() == reflect.Slice {
 			// 	pods := reflect.ValueOf(podsArray)
 			// 	log.Printf("pods length: %d", pods.Len())
