@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net"
 	"net/http"
 	"net/url"
@@ -168,6 +169,7 @@ type URLAndAddress struct {
 }
 
 func (p *Prometheus) GetAllURLs() (map[string]URLAndAddress, error) {
+	log.Printf("Rashmi-log: In GetAllURLs")
 	allURLs := make(map[string]URLAndAddress, 0)
 	for _, u := range p.URLs {
 		URL, err := url.Parse(u)
@@ -179,6 +181,8 @@ func (p *Prometheus) GetAllURLs() (map[string]URLAndAddress, error) {
 	}
 
 	p.lock.Lock()
+	log.Printf("Rashmi-log: In GetAllURLs - locking to gather all values")
+
 	defer p.lock.Unlock()
 	// loop through all pods scraped via the prometheus annotation on the pods
 	for k, v := range p.kubernetesPods {
@@ -205,6 +209,7 @@ func (p *Prometheus) GetAllURLs() (map[string]URLAndAddress, error) {
 			}
 		}
 	}
+	log.Printf("Rashmi-log: In GetAllURLs - unlocking after gathering all values")
 	return allURLs, nil
 }
 

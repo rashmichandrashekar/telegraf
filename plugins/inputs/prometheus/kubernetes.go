@@ -116,8 +116,8 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 		case <-ctx.Done():
 			return nil
 		//default:
-		case <-time.After(30 * time.Second):
-			log.Printf("Rashmi-log: after 30s attempting to update url list")
+		case <-time.After(60 * time.Second):
+			log.Printf("Rashmi-log: after 60s attempting to update url list")
 			caCert, err := ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
 			if err != nil {
 				return err
@@ -160,6 +160,7 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 
 			pods := cadvisorPodsResponse.Items
 			p.lock.Lock()
+			log.Printf("Rashmi-log: In watch - locking to update the URLAndAddress map")
 			// Resetting this so that it can be updated
 			p.kubernetesPods = map[string]URLAndAddress{}
 			for _, pod := range pods {
@@ -172,6 +173,7 @@ func (p *Prometheus) watch(ctx context.Context, client *k8s.Client) error {
 					registerPod(pod, p)
 				}
 			}
+			log.Printf("Rashmi-log: In watch - Unlocking after updating the URLAndAddress map")
 			p.lock.Unlock()
 		}
 	}
